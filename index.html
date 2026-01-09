@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: white;
+            background-color: #222;
+            background-image: url('/arelev.png');
+            background-size: 100px;
+            background-repeat: repeat;
+        }
+        .bingoContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .bingoGrid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 5px;
+            width: 1000px;
+            height: 1000px;
+        }
+        .bingoCell {
+            background-color: #333e;
+            border: 1px solid gray;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            width: 170px;
+        }
+        .bingoCleared {
+            background-color: #4cbb4cee;
+        }
+    </style>
+</head>
+<body>
+    <div class="bingoContainer">
+        <div class="bingoGrid">
+
+        </div>
+    </div>
+    <script>
+        /**
+         * Returns a random integer between min (inclusive) and max (inclusive).
+         * The value is no lower than min (or the next integer greater than min
+         * if min isn't an integer) and no greater than max (or the next integer
+         * lower than max if max isn't an integer).
+         * Using Math.round() will give you a non-uniform distribution!
+         */
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        
+        try {
+            fetch("./bingo.json")
+                //.then(res => res.json())
+                .then(res => {
+                    //res = res.json();
+                    //console.log(res);
+                    if (res.status === 200) {
+                        return res.json();
+                    }
+                    return Promise.reject(new Error('HTTP status ' + res.status));
+                })
+                .then(data => {
+                    createBingoGrid(data);
+                })
+                .catch(error => console.error(error));
+        }
+        catch (error) {
+            console.error(error);
+        }
+            
+
+
+        function createBingoGrid(data) {
+            let bingoData = data;
+            const bingoGrid = document.querySelector('.bingoGrid');
+            // Create a 5x5 grid
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('bingoCell');
+                cell.addEventListener('click', () => {
+                    cell.classList.toggle('bingoCleared');
+                });
+                if (i === 12) {
+                    cell.innerHTML = "Not talking / responding";
+                    bingoGrid.appendChild(cell);
+                    continue;
+                } else {
+                    // Select a random item from bingoData
+                    const randomIndex = getRandomInt(0, bingoData.length - 1);
+                    const item = bingoData[randomIndex];
+                    cell.innerHTML = item;
+                    // Remove the selected item from bingoData to avoid duplicates
+                    bingoData.splice(randomIndex, 1);
+                }
+                
+                bingoGrid.appendChild(cell);
+            }
+
+            // Example function to mark a cell as cleared
+            function markCellAsCleared(index) {
+                const cells = bingoGrid.children;
+                if (index >= 0 && index < cells.length) {
+                    cells[index].classList.add('bingoCleared');
+                }
+            }
+
+        }
+       
+    </script>
+</body>
+</html>
